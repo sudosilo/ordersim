@@ -20,7 +20,7 @@ const app = express();
 app.use(cors({ origin: ALLOWED_ORIGIN }));
 app.use(express.json({ limit: '8kb' }));
 
-const SCENARIOS = ['breakfast', 'dinner', 'huge', 'freeplay'];
+const SCENARIOS = ['breakfast', 'dinner', 'huge', 'freeplay', 'drivethru', 'daily'];
 const MAX_SCORE_PER_SEC = 400;
 const rateBucket = new Map();
 

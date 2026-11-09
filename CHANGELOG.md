@@ -1,1 +1,2 @@
+2026-11-08, v2026.11.08. Version three. Tutorial, drive thru, and daily shift scenarios. Paper rolls, allergy confirms, 86 items, voids, order changes, offline screens with reboot, rush and delivery tickets, all day count, recall, pause, hamburger menu with settings, sound, vibration, achievements, career stats, run history, graded shift report. Frontend renamed to ordersim-v3.html with a vercel.json rewrite.
 2026-10-10, v2026.10.10. First release. Version 2 has a light theme, callsigns, local best scores, and an online leaderboard.

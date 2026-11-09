@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>ORDERSIM</title>
+<style>
+:root {
+  --ink: #111111;
+  --muted: #4a5466;
+  --bg: #eef2f8;
+  --paper: #ffffff;
+  --screen: #f6f9ff;
+  --blue: #1e5eff;
+  --blue-soft: #dbe6ff;
+  --ok: #0b8a3e;
+  --ok-soft: #dcf4e5;
+  --warn: #b86e00;
+  --warn-soft: #fff0d2;
+  --bad: #c81e1e;
+  --bad-soft: #ffe0e0;
+  --label: #fff6b8;
+  --mono: ui-monospace, "SF Mono", "DejaVu Sans Mono", Menlo, Consolas, monospace;
+  --head: Impact, "Arial Narrow Bold", "Helvetica Neue", Arial, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  height: 100dvh;
+  overflow: hidden;
+  user-select: none;
+}
+button { font-family: var(--mono); color: var(--ink); }
+.hidden { display: none !important; }
+
+/* HAMBURGER AND MENU */
+#hamBtn {
+  position: fixed; top: 6px; left: 6px; z-index: 1001; width: 36px; height: 32px;
+  border: 2px solid var(--ink); background: var(--paper); border-radius: 3px; box-shadow: 2px 2px 0 var(--ink);
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; cursor: pointer;
+}
+#hamBtn span { display: block; width: 18px; height: 3px; background: var(--blue); border-radius: 1px; }
+#hamBtn:active { box-shadow: none; }
+#menuScrim { position: fixed; inset: 0; z-index: 990; background: rgba(17,17,17,.18); }
+#menu {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 995; width: min(330px, 84vw);
+  background: var(--paper); border-right: 3px solid var(--ink); box-shadow: 6px 0 0 var(--blue);
+  overflow-y: auto; padding: 48px 12px 24px;
+}
+.m-title { font-family: var(--head); font-size: 30px; letter-spacing: 1px; }
+.m-title span { color: var(--blue); }
+.m-run { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
+#menu details { border: 2px solid var(--ink); border-radius: 3px; margin-top: 10px; background: var(--screen); }
+#menu summary { font-weight: 800; font-size: 12px; letter-spacing: 1px; padding: 8px 10px; cursor: pointer; background: var(--blue-soft); }
+.m-body { padding: 8px 10px; font-size: 12px; line-height: 1.55; }
+.m-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; }
+.m-row .btn { min-width: 96px; text-align: center; }
+.m-kv { display: flex; justify-content: space-between; border-bottom: 1px dashed #b9c2d3; padding: 3px 0; }
+.m-kv b { color: var(--blue); }
+.m-hist { border-bottom: 1px dashed #b9c2d3; padding: 4px 0; }
+.m-how p + p { margin-top: 6px; }
+.m-foot { margin-top: 16px; font-size: 11px; font-weight: 700; color: var(--blue); letter-spacing: 1px; }
+
+/* LANDING */
+#landing { height: 100dvh; overflow-y: auto; }
+.l-wrap { max-width: 760px; margin: 0 auto; padding: 50px 14px 40px; }
+.l-eyebrow { font-size: 11px; font-weight: 700; color: var(--blue); letter-spacing: 2px; }
+.l-title { font-family: var(--head); font-size: clamp(54px, 16vw, 104px); line-height: .9; letter-spacing: 1px; margin-top: 6px; }
+.l-title span { color: var(--blue); }
+.l-sub { font-size: 13px; color: var(--muted); line-height: 1.6; margin-top: 10px; max-width: 520px; }
+.l-callsign { margin-top: 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.l-callsign label { font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+.l-callsign input {
+  font-family: var(--mono); font-size: 14px; font-weight: 700; text-transform: uppercase;
+  border: 2px solid var(--ink); background: var(--paper); padding: 8px 10px; width: 170px;
+  border-radius: 3px; color: var(--ink);
+}
+.l-section { font-family: var(--head); font-size: 22px; letter-spacing: 1px; margin: 22px 0 10px; }
+.cards { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 620px) { .cards { grid-template-columns: 1fr 1fr; } }
+.card {
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 4px;
+  box-shadow: 4px 4px 0 var(--ink); padding: 14px 14px 12px 22px; cursor: pointer;
+  position: relative; text-align: left; width: 100%;
+}
+.card:active { box-shadow: 1px 1px 0 var(--ink); }
+.card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 10px; border-right: 2px solid var(--ink); }
+.c-tu::before { background: #7dd3fc; }
+.c-bf::before { background: #ffb300; }
+.c-dn::before { background: var(--bad); }
+.c-hg::before { background: #a21caf; }
+.c-fp::before { background: var(--blue); }
+.c-dt::before { background: #0d9488; }
+.c-dy::before { background: repeating-linear-gradient(45deg, var(--blue) 0 6px, #fff 6px 12px); }
+.c-title { font-family: var(--head); font-size: 26px; letter-spacing: 1px; }
+.c-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 4px; }
+.c-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+.tag { font-size: 10px; font-weight: 700; border: 1.5px solid var(--ink); padding: 2px 6px; border-radius: 2px; background: var(--bg); }
+.c-best { margin-top: 10px; font-size: 11px; font-weight: 700; color: var(--blue); }
+.c-board { margin-top: 6px; font-size: 11px; color: var(--muted); line-height: 1.5; }
+.howto, .panel { background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; padding: 14px; font-size: 13px; line-height: 1.6; color: var(--ink); }
+.howto p + p { margin-top: 8px; }
+.career { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; font-size: 12px; }
+@media (min-width: 620px) { .career { grid-template-columns: 1fr 1fr 1fr; } }
+.career div { display: flex; justify-content: space-between; border-bottom: 1px dashed #b9c2d3; padding: 3px 0; }
+.career b { color: var(--blue); }
+.achs { display: grid; grid-template-columns: 1fr; gap: 8px; }
+@media (min-width: 620px) { .achs { grid-template-columns: 1fr 1fr; } }
+.ach { border: 2px solid var(--ink); border-radius: 3px; padding: 7px 9px; background: var(--paper); font-size: 11px; line-height: 1.4; }
+.ach b { display: block; font-size: 12px; }
+.ach.on { background: var(--blue-soft); }
+.ach.on b { color: var(--blue); }
+.ach.off { opacity: .55; }
+.l-foot { margin-top: 20px; font-size: 11px; color: var(--muted); }
+.l-foot b { color: var(--blue); letter-spacing: 1px; }
+
+/* GAME SHELL */
+#game { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.g-head {
+  background: var(--paper); border-bottom: 2px solid var(--ink);
+  display: flex; align-items: center; gap: 8px; padding: 5px 8px 5px 50px; flex-shrink: 0; height: 44px; flex-wrap: nowrap;
+}
+.btn {
+  border: 2px solid var(--ink); background: var(--paper); font-weight: 700; font-size: 12px;
+  padding: 5px 10px; border-radius: 3px; box-shadow: 2px 2px 0 var(--ink); cursor: pointer;
+}
+.btn:active { box-shadow: 0 0 0 var(--ink); }
+.btn.blue { background: var(--blue); color: #fff; }
+.btn.dim { opacity: .45; }
+.g-logo { font-family: var(--head); font-size: 20px; letter-spacing: 1px; flex-shrink: 0; }
+.g-logo span { color: var(--blue); }
+.badge { font-size: 10px; font-weight: 700; border: 1.5px solid var(--ink); padding: 2px 6px; border-radius: 2px; background: var(--blue-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.g-right { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
+.g-right .btn { width: 76px; padding: 5px 0; text-align: center; font-size: 11px; }
+
+.statrow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--paper); border-bottom: 2px solid var(--ink); flex-shrink: 0; height: 34px; }
+.statrow div { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: var(--muted); border-right: 1px solid #c9d1e0; letter-spacing: .5px; }
+.statrow div:last-child { border-right: none; }
+.statrow b { color: var(--ink); font-size: 13px; letter-spacing: 0; }
+
+.tp { display: flex; align-items: center; gap: 8px; padding: 5px 8px; background: var(--paper); border-bottom: 2px solid var(--ink); flex-shrink: 0; }
+.tp-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+.tp-track { flex: 1; height: 12px; border: 2px solid var(--ink); border-radius: 2px; background: var(--bg); overflow: hidden; }
+.tp-fill { height: 100%; width: 100%; background: var(--ok); transition: width .4s, background .4s; }
+.tp-pct { font-size: 12px; font-weight: 700; min-width: 40px; text-align: right; }
+
+.allday { display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px; background: var(--screen); border-bottom: 2px solid var(--ink); flex-shrink: 0; overflow: hidden; }
+.ad-label { font-size: 10px; font-weight: 800; color: #fff; background: var(--blue); border: 1.5px solid var(--ink); padding: 2px 5px; border-radius: 2px; flex-shrink: 0; }
+.ad-chips { display: flex; gap: 5px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; flex: 1; }
+.ad-chips::-webkit-scrollbar { display: none; }
+.ad { font-size: 10px; font-weight: 700; border: 1.5px solid var(--ink); padding: 1px 5px; border-radius: 2px; background: var(--paper); flex-shrink: 0; }
+.ad.c86 { background: var(--ink); color: #fff; }
+.ad-empty { font-size: 10px; color: var(--muted); }
+.tutbar { display: flex; align-items: center; gap: 8px; height: 58px; padding: 4px 8px; background: var(--blue); color: #fff; border-bottom: 2px solid var(--ink); flex-shrink: 0; font-size: 11px; line-height: 1.35; font-weight: 700; overflow: hidden; }
+.tut-step { flex-shrink: 0; background: #fff; color: var(--blue); border: 1.5px solid var(--ink); border-radius: 2px; padding: 2px 6px; font-weight: 800; }
+
+/* MAIN GRID: portrait first */
+.main {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr) 170px;
+  gap: 6px; padding: 6px;
+}
+.side { grid-column: 1 / -1; }
+@media (min-width: 900px) {
+  .main { grid-template-columns: repeat(3, minmax(0, 1fr)) 280px; grid-template-rows: minmax(0, 1fr); }
+  .side { grid-column: auto; }
+}
+
+/* MONITORS */
+.mon {
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 4px;
+  display: flex; flex-direction: column; overflow: hidden; position: relative; min-height: 0;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.mon-bar {
+  background: var(--blue); color: #fff; border-bottom: 2px solid var(--ink);
+  display: flex; align-items: center; gap: 5px; padding: 4px 6px; flex-shrink: 0;
+  font-size: 11px; font-weight: 700; letter-spacing: .5px; white-space: nowrap; overflow: hidden;
+}
+.mon-bar .name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.mon-bar .count { background: #fff; color: var(--ink); border: 1.5px solid var(--ink); border-radius: 2px; padding: 0 5px; font-size: 11px; }
+.lt { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--ink); background: #c7cfdd; flex-shrink: 0; }
+.lt.ok { background: #3ddc7a; }
+.lt.warn { background: #ffb300; }
+.lt.bad { background: #ff3b3b; }
+
+.screen { background: var(--screen); flex: 1; min-height: 0; overflow-y: auto; padding: 5px; scrollbar-width: none; }
+.screen::-webkit-scrollbar { display: none; }
+.empty { font-size: 11px; color: var(--muted); padding: 4px 2px; }
+
+/* OFFLINE OVERLAY */
+.mon-off {
+  display: none; position: absolute; left: 0; right: 0; top: 24px; bottom: 0; z-index: 7;
+  background: repeating-linear-gradient(0deg, #1b1f27 0 3px, #262b36 3px 6px); color: #9fb8ff;
+  flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 6px;
+  font-size: 10px; font-weight: 800; letter-spacing: .5px;
+}
+.mon-off.show { display: flex; }
+.mon-off .btn { width: 92px; text-align: center; padding: 6px 0; }
+
+/* TICKETS */
+.ticket {
+  background: var(--paper); border: 2px solid #aab4c8; border-radius: 3px;
+  padding: 5px; margin-bottom: 5px; font-size: 11px; line-height: 1.35; cursor: pointer;
+}
+.ticket.rush { border-left: 6px solid #ffb300; }
+.ticket.ready { border-color: var(--ok); background: var(--ok-soft); }
+.ticket.urgent { border-color: var(--warn); background: var(--warn-soft); }
+.ticket.critical { border-color: var(--bad); background: var(--bad-soft); }
+.ticket.void { border-color: #6b7280; background: repeating-linear-gradient(45deg, #eceff4 0 6px, #dfe3ea 6px 12px); color: #6b7280; }
+.ticket:active { filter: brightness(.95); }
+.flag { font-size: 10px; font-weight: 800; padding: 2px 4px; margin-bottom: 4px; border: 1.5px solid var(--ink); border-radius: 2px; text-align: center; letter-spacing: .3px; }
+.flag.allergy { background: var(--bad); color: #fff; }
+.flag.allok { background: var(--blue); color: #fff; }
+.flag.e86 { background: var(--ink); color: #fff; }
+.flag.void { background: #6b7280; color: #fff; }
+.t-hd { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; }
+.t-id { font-size: 14px; font-weight: 800; }
+.t-meta { font-size: 10px; color: var(--muted); text-align: right; }
+.t-chips { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 2px; }
+.chip { font-size: 9px; font-weight: 800; border: 1px solid var(--ink); border-radius: 2px; padding: 0 3px; background: var(--paper); }
+.chip.rush { background: #ffb300; }
+.chip.dine { background: var(--blue-soft); }
+.chip.togo { background: #e9d5ff; }
+.chip.drive { background: #ccfbf1; }
+.chip.delivery { background: #fde68a; }
+.chip.chg { background: var(--blue); color: #fff; }
+.ticket.ready .t-id { color: var(--ok); }
+.ticket.urgent .t-id { color: var(--warn); }
+.ticket.critical .t-id { color: var(--bad); }
+.t-items { margin-top: 3px; }
+.i-name { font-weight: 700; display: block; overflow-wrap: anywhere; }
+.i-name.out { text-decoration: line-through; color: var(--bad); }
+.i-mod { color: var(--blue); font-size: 10px; display: block; padding-left: 6px; }
+.i-mod.chg { font-weight: 800; }
+.t-bar { height: 5px; background: #dde3ee; border: 1px solid #aab4c8; margin-top: 5px; border-radius: 2px; overflow: hidden; }
+.t-fill { height: 100%; background: var(--blue); transition: width .3s linear; }
+.ticket.ready .t-fill { background: var(--ok); }
+.ticket.urgent .t-fill { background: var(--warn); }
+.ticket.critical .t-fill { background: var(--bad); }
+.t-tap { display: none; margin-top: 4px; font-size: 10px; font-weight: 800; letter-spacing: .5px; text-align: center; }
+.ticket.ready .t-tap, .ticket.urgent .t-tap, .ticket.critical .t-tap { display: block; }
+.ticket.ready .t-tap { color: var(--ok); }
+.ticket.urgent .t-tap { color: var(--warn); }
+.ticket.critical .t-tap { color: var(--bad); }
+
+/* RECEIPT PILE climbing over the KDS */
+.pile { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; flex-direction: column-reverse; }
+.pile-r {
+  background: #fff; border: 1.5px solid var(--ink); border-bottom: none; border-top: 2px dashed var(--ink);
+  padding: 5px 6px; font-size: 10px; line-height: 1.3; cursor: pointer; min-height: 32px;
+  box-shadow: 0 -3px 6px rgba(0,0,0,.18);
+  animation: drop .25s ease-out;
+}
+.pile-r.chit { background: #f3f7ff; }
+.pile-r:active { background: #f1f1f1; }
+.pile-r.jammed { background: #ffecec; }
+.pr-id { font-weight: 800; }
+.pr-tear { float: right; font-size: 9px; font-weight: 700; color: var(--muted); }
+@keyframes drop { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.nomotion .pile-r, .nomotion .expo-r, .nomotion .lbl { animation: none; }
+.pile-jam {
+  display: none; position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; pointer-events: none;
+  background: var(--bad); color: #fff; font-size: 10px; font-weight: 800; text-align: center;
+  padding: 5px 4px; border-top: 2px solid var(--ink); letter-spacing: .5px;
+}
+.pile-jam.show { display: block; }
+
+/* SIDE PANEL: portrait grid, wide column */
+.side {
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; box-shadow: 3px 3px 0 var(--ink);
+  overflow: hidden; min-height: 0;
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(0, 1fr) auto auto minmax(0, 1fr);
+  grid-template-areas: "eh lh" "ex lt" "ex gh" "ex lg" "ex lg";
+}
+@media (min-width: 900px) {
+  .side { display: flex; flex-direction: column; }
+}
+.sh-expo { grid-area: eh; }
+.sh-label { grid-area: lh; }
+.sh-log { grid-area: gh; border-top: 2px solid var(--ink); }
+.expo { grid-area: ex; border-right: 2px solid var(--ink); }
+.ltray { grid-area: lt; }
+.log { grid-area: lg; }
+@media (min-width: 900px) {
+  .expo { border-right: none; flex: 0 0 auto; max-height: 40%; }
+  .sh-label { border-top: 2px solid var(--ink); }
+  .ltray { flex: 0 0 auto; }
+  .log { flex: 1; }
+}
+.expo { background: var(--screen); overflow-y: auto; padding: 5px; min-height: 0; scrollbar-width: none; }
+.expo::-webkit-scrollbar { display: none; }
+.expo-r {
+  background: #fff; border: 1.5px solid var(--ink); border-bottom: 2px dashed var(--ink);
+  padding: 5px 6px; margin-bottom: 4px; font-size: 10px; line-height: 1.35; cursor: pointer;
+  animation: drop .25s ease-out;
+}
+.expo-r:active { background: #f1f1f1; }
+.expo-r.jammed { background: #ffecec; }
+.er-id { font-weight: 800; border-bottom: 1px dashed #999; padding-bottom: 2px; margin-bottom: 2px; }
+.er-svr { color: var(--muted); font-size: 9px; margin-top: 2px; }
+.ltray { background: var(--screen); padding: 5px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; overflow-y: auto; min-height: 40px; scrollbar-width: none; }
+.ltray::-webkit-scrollbar { display: none; }
+.lbl {
+  background: var(--label); border: 1.5px solid var(--ink); border-radius: 2px;
+  font-size: 10px; font-weight: 700; padding: 5px 7px; cursor: pointer; box-shadow: 1px 1px 0 var(--ink);
+  animation: drop .2s ease-out;
+}
+.lbl:active { box-shadow: none; }
+.log { background: var(--paper); overflow-y: auto; padding: 4px 6px; min-height: 0; scrollbar-width: none; }
+.log::-webkit-scrollbar { display: none; }
+.log-e { font-size: 10px; line-height: 1.5; color: var(--muted); }
+.log-e.info { color: var(--ink); }
+.log-e.warn { color: var(--warn); font-weight: 700; }
+.log-e.error { color: var(--bad); font-weight: 700; }
+
+/* PRINTER RACK */
+.rack { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; padding: 0 6px 6px; flex-shrink: 0; }
+.p-unit {
+  background: var(--paper); border: 2px solid var(--ink); border-radius: 3px; box-shadow: 2px 2px 0 var(--ink);
+  display: flex; flex-direction: column; gap: 2px; padding: 4px 5px; min-width: 0; cursor: pointer; text-align: left; height: 52px;
+}
+.p-unit:active { box-shadow: none; }
+.p-top { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.p-led { width: 8px; height: 8px; border-radius: 50%; background: #6b7280; border: 1.5px solid var(--ink); flex-shrink: 0; }
+.p-led.on { background: #3ddc7a; }
+.p-led.warn { background: #ffb300; }
+.p-led.jam { background: #ff3b3b; }
+.p-led.load { background: var(--blue); animation: blink .4s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+.p-name { font-size: 10px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p-q { font-size: 9px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p-q.bad { color: var(--bad); font-weight: 800; }
+.p-paper { height: 6px; border: 1.5px solid var(--ink); border-radius: 2px; background: var(--bg); overflow: hidden; margin-top: auto; }
+.p-pf { height: 100%; background: var(--blue); width: 100%; }
+
+/* OVERLAYS */
+.overlay { position: fixed; inset: 0; z-index: 900; background: rgba(238,242,248,.94); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.go-card { background: var(--paper); border: 3px solid var(--ink); border-radius: 4px; box-shadow: 6px 6px 0 var(--ink); padding: 20px 18px; text-align: center; max-width: 400px; width: 100%; max-height: 92dvh; overflow-y: auto; }
+.go-h { font-family: var(--head); font-size: 38px; color: var(--bad); letter-spacing: 1px; }
+.go-h.win { color: var(--blue); }
+.go-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.go-grade { font-family: var(--head); font-size: 64px; line-height: 1; margin-top: 8px; color: var(--blue); }
+.go-score { font-family: var(--head); font-size: 30px; margin-top: 6px; }
+.go-best { font-size: 12px; font-weight: 700; color: var(--blue); margin-top: 2px; }
+.go-stats { font-size: 12px; color: var(--muted); margin-top: 10px; text-align: left; }
+.go-stats div { display: flex; justify-content: space-between; border-bottom: 1px dashed #c9d1e0; padding: 2px 0; }
+.go-stats b { color: var(--ink); }
+.go-ach { font-size: 11px; font-weight: 800; color: var(--blue); margin-top: 10px; line-height: 1.5; }
+.go-btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+.go-btns .btn { width: 100px; text-align: center; }
+.sfloat { position: fixed; z-index: 500; pointer-events: none; font-family: var(--head); font-size: 26px; color: var(--ok); -webkit-text-stroke: 1px var(--ink); opacity: 0; transition: opacity .6s, transform .8s; }
+#toast { position: fixed; top: 84px; left: 50%; transform: translateX(-50%); z-index: 950; pointer-events: none; background: var(--blue); color: #fff; border: 2px solid var(--ink); border-radius: 3px; box-shadow: 3px 3px 0 var(--ink); padding: 7px 12px; font-size: 12px; font-weight: 800; letter-spacing: .5px; opacity: 0; transition: opacity .3s; white-space: nowrap; }
+#toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<button id="hamBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+<div id="menuScrim" class="hidden"></div>
+<aside id="menu" class="hidden">
+  <div class="m-title">ORDER<span>SIM</span></div>
+  <div class="m-run hidden" id="mRun">
+    <button class="btn blue" id="mResume">RESUME</button>
+    <button class="btn" id="mRestart">RESTART</button>
+    <button class="btn" id="mQuit">QUIT</button>
+  </div>
+  <details open>
+    <summary>SETTINGS</summary>
+    <div class="m-body">
+      <div class="m-row"><span>SOUND</span><button class="btn" id="setSound">ON</button></div>
+      <div class="m-row"><span>VIBRATION</span><button class="btn" id="setVibe">ON</button></div>
+      <div class="m-row"><span>GAME SPEED</span><button class="btn" id="setSpeed">NORMAL</button></div>
+      <div class="m-row"><span>MOTION</span><button class="btn" id="setMotion">ON</button></div>
+    </div>
+  </details>
+  <details>
+    <summary>CAREER</summary>
+    <div class="m-body" id="mCareer"></div>
+  </details>
+  <details>
+    <summary>RUN HISTORY</summary>
+    <div class="m-body" id="mHist"></div>
+  </details>
+  <details>
+    <summary>ACHIEVEMENTS</summary>
+    <div class="m-body" id="mAch"></div>
+  </details>
+  <details>
+    <summary>HOW TO PLAY</summary>
+    <div class="m-body m-how" id="mHow"></div>
+  </details>
+  <div class="m-foot">MOHAVE TECHNOLOGY GROUP</div>
+</aside>
+
+<div id="landing">
+  <div class="l-wrap">
+    <div class="l-eyebrow">RESTAURANT TECHNOLOGY SIMULATOR</div>
+    <div class="l-title">ORDER<span>SIM</span></div>
+    <p class="l-sub">Orders fire from the POS to every station on their own. Bump finished tickets, tear receipts before they bury the screens, tear labels, change paper rolls, confirm allergies, call servers on 86 items, and reboot screens that drop offline.</p>
+
+    <div class="l-callsign">
+      <label for="callsign">CALLSIGN</label>
+      <input id="callsign" maxlength="12" autocomplete="off" spellcheck="false" placeholder="PLAYER">
+    </div>
+
+    <div class="l-section">SELECT SCENARIO</div>
+    <div class="cards">
+      <button class="card c-tu" data-scn="tutorial">
+        <div class="c-title">TUTORIAL</div>
+        <div class="c-desc">A guided walk through every station, printer, and event in the kitchen. Throughput never fails here.</div>
+        <div class="c-tags"><span class="tag">GUIDED</span><span class="tag">NO FAIL</span><span class="tag">START HERE</span></div>
+        <div class="c-best" id="best-tutorial"></div>
+        <div class="c-board" id="board-tutorial"></div>
+      </button>
+      <button class="card c-bf" data-scn="breakfast">
+        <div class="c-title">BREAKFAST RUSH</div>
+        <div class="c-desc">Fast cadence, simple tickets. Hash browns, biscuits, coffee. Labels pile up quick.</div>
+        <div class="c-tags"><span class="tag">HIGH FREQUENCY</span><span class="tag">SHORT COOKS</span><span class="tag">LABEL FLOOD</span></div>
+        <div class="c-best" id="best-breakfast"></div>
+        <div class="c-board" id="board-breakfast"></div>
+      </button>
+      <button class="card c-dn" data-scn="dinner">
+        <div class="c-title">DINNER RUSH</div>
+        <div class="c-desc">Peak service. Long cook times, lots of modifiers, delivery drivers, a full grill, and an expo printer that never stops.</div>
+        <div class="c-tags"><span class="tag">FULL BOARD</span><span class="tag">COMPLEX MODS</span><span class="tag">PRINTER STRESS</span></div>
+        <div class="c-best" id="best-dinner"></div>
+        <div class="c-board" id="board-dinner"></div>
+      </button>
+      <button class="card c-hg" data-scn="huge">
+        <div class="c-title">HUGE ORDERS</div>
+        <div class="c-desc">Bus parties and school groups. Giant tickets hit every station at once. The receipts will bury you.</div>
+        <div class="c-tags"><span class="tag">MEGA TICKETS</span><span class="tag">ALL STATIONS</span><span class="tag">CHAOS</span></div>
+        <div class="c-best" id="best-huge"></div>
+        <div class="c-board" id="board-huge"></div>
+      </button>
+      <button class="card c-dt" data-scn="drivethru">
+        <div class="c-title">DRIVE THRU</div>
+        <div class="c-desc">Cars stack in two lanes and every ticket is on a clock. Short cooks, tight windows, bag labels everywhere.</div>
+        <div class="c-tags"><span class="tag">TWO LANES</span><span class="tag">TIGHT TIMERS</span><span class="tag">BAG LABELS</span></div>
+        <div class="c-best" id="best-drivethru"></div>
+        <div class="c-board" id="board-drivethru"></div>
+      </button>
+      <button class="card c-fp" data-scn="freeplay">
+        <div class="c-title">FREEPLAY</div>
+        <div class="c-desc">Starts slow and ramps up the longer you last. Events get meaner as the clock runs.</div>
+        <div class="c-tags"><span class="tag">NORMAL START</span><span class="tag">ESCALATING</span><span class="tag">PRACTICE</span></div>
+        <div class="c-best" id="best-freeplay"></div>
+        <div class="c-board" id="board-freeplay"></div>
+      </button>
+      <button class="card c-dy" data-scn="daily">
+        <div class="c-title">DAILY SHIFT</div>
+        <div class="c-desc">A five minute shift with the same order sequence for every player today. Close it out and get graded.</div>
+        <div class="c-tags"><span class="tag">SEEDED</span><span class="tag">FIVE MINUTES</span><span class="tag">REPORT CARD</span></div>
+        <div class="c-best" id="best-daily"></div>
+        <div class="c-board" id="board-daily"></div>
+      </button>
+    </div>
+
+    <div class="l-section">CAREER</div>
+    <div class="panel"><div class="career" id="careerBox"></div></div>
+
+    <div class="l-section">ACHIEVEMENTS</div>
+    <div class="achs" id="achBox"></div>
+
+    <div class="l-section">HOW IT PLAYS</div>
+    <div class="howto" id="howBox"></div>
+    <div class="l-foot"><b>MOHAVE TECHNOLOGY GROUP</b><br>ORDERSIM V3</div>
+  </div>
+</div>
+
+<div id="game" class="hidden">
+  <div class="g-head">
+    <div class="g-logo">ORDER<span>SIM</span></div>
+    <div class="badge" id="gBadge">FREEPLAY</div>
+    <div class="g-right">
+      <button class="btn dim" id="recallBtn">RECALL</button>
+      <button class="btn" id="pauseBtn">PAUSE</button>
+    </div>
+  </div>
+
+  <div class="statrow">
+    <div>SCORE<b id="scoreDisplay">0</b></div>
+    <div>STREAK<b id="streakDisplay">0</b></div>
+    <div><span id="timeLabel">TIME</span><b id="timeDisplay">0:00</b></div>
+    <div>AVG TICKET<b id="avgDisplay">0s</b></div>
+    <div>ON TIME<b id="onTimeDisplay">100%</b></div>
+  </div>
+
+  <div class="tp">
+    <span class="tp-label">THROUGHPUT</span>
+    <div class="tp-track"><div class="tp-fill" id="tpFill"></div></div>
+    <span class="tp-pct" id="tpPct">100%</span>
+  </div>
+
+  <div class="allday" id="allday"><span class="ad-label">ALL DAY</span><div class="ad-chips" id="adChips"></div></div>
+  <div class="tutbar hidden" id="tutBar"><span class="tut-step" id="tutStep">STEP</span><span id="tutText"></span></div>
+
+  <div class="main">
+    <div class="mon">
+      <div class="mon-bar"><span class="lt" id="grillLight"></span><span class="name">GRILL</span><span class="count" id="grillCount">0</span></div>
+      <div class="screen" id="grillScreen"></div>
+      <div class="pile" id="pilGrill"></div>
+      <div class="pile-jam" id="jamGrill">GRILL PRINTER JAMMED</div>
+      <div class="mon-off" id="offGrill"><div>GRILL KDS OFFLINE<br>TICKETS PRINTING AS CHITS</div><button class="btn blue" data-reboot="grill">REBOOT</button></div>
+    </div>
+    <div class="mon">
+      <div class="mon-bar"><span class="lt" id="friesLight"></span><span class="name">FRIES / SIDES</span><span class="count" id="friesCount">0</span></div>
+      <div class="screen" id="friesScreen"></div>
+      <div class="pile" id="pilFries"></div>
+      <div class="pile-jam" id="jamFries">FRIES PRINTER JAMMED</div>
+      <div class="mon-off" id="offFries"><div>FRIES KDS OFFLINE<br>TICKETS PRINTING AS CHITS</div><button class="btn blue" data-reboot="fries">REBOOT</button></div>
+    </div>
+    <div class="mon">
+      <div class="mon-bar"><span class="lt" id="sandwichLight"></span><span class="name">SANDWICH / DRINKS</span><span class="count" id="sandwichCount">0</span></div>
+      <div class="screen" id="sandwichScreen"></div>
+      <div class="pile" id="pilSandwich"></div>
+      <div class="pile-jam" id="jamSandwich">SANDWICH PRINTER JAMMED</div>
+      <div class="mon-off" id="offSandwich"><div>SANDWICH KDS OFFLINE<br>TICKETS PRINTING AS CHITS</div><button class="btn blue" data-reboot="sandwich">REBOOT</button></div>
+    </div>
+
+    <div class="side">
+      <div class="mon-bar sh-expo"><span class="lt ok" id="expoLight"></span><span class="name">EXPO</span><span class="count" id="expoStatus">READY</span></div>
+      <div class="expo" id="expoScreen"></div>
+      <div class="mon-bar sh-label"><span class="lt" id="labelLight"></span><span class="name">LABELS</span><span class="count" id="labelCount">0</span></div>
+      <div class="ltray" id="labelTray"></div>
+      <div class="mon-bar sh-log"><span class="name">SYSTEM LOG</span><span class="count" id="jamCount">0 JAMS</span></div>
+      <div class="log" id="logScreen"></div>
+    </div>
+  </div>
+
+  <div class="rack" id="rack"></div>
+
+  <div class="overlay hidden" id="pauseOv">
+    <div class="go-card">
+      <div class="go-h win">PAUSED</div>
+      <div class="go-sub">THE KITCHEN IS FROZEN</div>
+      <div class="go-btns">
+        <button class="btn blue" id="resumeBtn">RESUME</button>
+        <button class="btn" id="pauseMenuBtn">QUIT</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="gameOver">
+    <div class="go-card">
+      <div class="go-h" id="goTitle">SYSTEM FAILURE</div>
+      <div class="go-sub" id="goSub">KITCHEN THROUGHPUT COLLAPSED</div>
+      <div class="go-grade" id="goGrade">F</div>
+      <div class="go-score">SCORE <span id="finalScore">0</span></div>
+      <div class="go-best" id="finalBest"></div>
+      <div class="go-stats" id="finalStats"></div>
+      <div class="go-ach" id="goAch"></div>
+      <div class="go-btns">
+        <button class="btn blue" id="retryBtn">RETRY</button>
+        <button class="btn" id="menuBtn2">MENU</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// Backend address. Leave empty to run fully offline. Set to the Railway domain once the backend is deployed.
+const API_BASE = '';
+const VERSION = 'v3';
+// Storage key kept from version two so earlier best scores carry over.
+const STORE_KEY = 'ordersim-v2';
+const TICK = 250;
+
+const BREAKFAST_ITEMS = {
+  'HASH BROWNS': ['fries', 7], 'FRIES SM': ['fries', 5], 'SIDE SALAD': ['fries', 4],
+  'EGG SANDWICH': ['grill', 10], 'BACON BISCUIT': ['grill', 9], 'PANCAKES': ['grill', 12], 'SAUSAGE BISCUIT': ['grill', 8],
+  'COFFEE LG': ['sandwich', 2], 'COFFEE SM': ['sandwich', 2], 'OJ LG': ['sandwich', 2]
+};
+const DINNER_ITEMS = {
+  'CHEESEBURGER': ['grill', 14], 'BACON BURGER': ['grill', 16], 'DOUBLE SMASH': ['grill', 18], 'GRILLED CHICKEN': ['grill', 15], 'FISH FILLET': ['grill', 17],
+  'FRIES LG': ['fries', 7], 'FRIES SM': ['fries', 5], 'ONION RINGS': ['fries', 9], 'MOZZ STICKS': ['fries', 8],
+  'CHICKEN SAND': ['sandwich', 12], 'BLT WRAP': ['sandwich', 10], 'SOFT DRINK LG': ['sandwich', 2], 'MILKSHAKE VAN': ['sandwich', 18], 'MILKSHAKE CHOC': ['sandwich', 18], 'KIDS MEAL': ['sandwich', 13]
+};
+const HUGE_ITEMS = {
+  'CHEESEBURGER': ['grill', 14], 'BACON BURGER': ['grill', 16], 'DOUBLE SMASH': ['grill', 18], 'GRILLED CHICKEN': ['grill', 15],
+  'FRIES LG': ['fries', 7], 'FRIES SM': ['fries', 5], 'ONION RINGS': ['fries', 9], 'MOZZ STICKS': ['fries', 8],
+  'CHICKEN SAND': ['sandwich', 12], 'BLT WRAP': ['sandwich', 10], 'SOFT DRINK LG': ['sandwich', 2], 'MILKSHAKE VAN': ['sandwich', 18], 'KIDS MEAL': ['sandwich', 13]
+};
+const FREE_ITEMS = {
+  'CHEESEBURGER': ['grill', 14], 'BACON BURGER': ['grill', 16], 'DOUBLE SMASH': ['grill', 18], 'GRILLED CHICKEN': ['grill', 15], 'FISH FILLET': ['grill', 17], 'HASH BROWNS': ['grill', 7],
+  'FRIES LG': ['fries', 7], 'FRIES SM': ['fries', 5], 'ONION RINGS': ['fries', 9], 'SIDE SALAD': ['fries', 4],
+  'CHICKEN SAND': ['sandwich', 12], 'BLT WRAP': ['sandwich', 10], 'SOFT DRINK LG': ['sandwich', 2], 'MILKSHAKE VAN': ['sandwich', 18], 'KIDS MEAL': ['sandwich', 13]
+};
+const DRIVE_ITEMS = {
+  'CHEESEBURGER': ['grill', 12], 'DOUBLE SMASH': ['grill', 15], 'CRISPY CHICKEN': ['grill', 13],
+  'NUGGETS 8PC': ['fries', 8], 'FRIES LG': ['fries', 6], 'FRIES SM': ['fries', 5], 'APPLE PIE': ['fries', 6],
+  'CHICKEN SAND': ['sandwich', 10], 'SOFT DRINK LG': ['sandwich', 2], 'ICED TEA': ['sandwich', 2], 'MILKSHAKE CHOC': ['sandwich', 14]
+};
+const TUT_ITEMS = { 'CHEESEBURGER': ['grill', 5], 'FRIES SM': ['fries', 4], 'SOFT DRINK LG': ['sandwich', 3] };
+
+const DINNER_EV = { rush: .08, allergy: .07, change: .08, void: .03, e86: true, offline: true, paper: 1 };
+
+const SCENARIOS = {
+  tutorial: { label: 'TUTORIAL', items: TUT_ITEMS, spawnRate: 0, maxItems: 1, burst: 0, types: { dine: 1 }, ev: { paper: 1 }, tutorial: true },
+  breakfast: { label: 'BREAKFAST RUSH', items: BREAKFAST_ITEMS, spawnRate: 4500, maxItems: 3, burst: 3,
+    types: { dine: .5, togo: .35, drive: .15 }, ev: { rush: .06, allergy: .05, change: .04, void: .02, e86: true, offline: false, paper: 1.3 } },
+  dinner: { label: 'DINNER RUSH', items: DINNER_ITEMS, spawnRate: 5000, maxItems: 4, burst: 2,
+    types: { dine: .6, togo: .12, delivery: .18, drive: .1 }, ev: DINNER_EV },
+  huge: { label: 'HUGE ORDERS', items: HUGE_ITEMS, spawnRate: 7500, maxItems: 9, burst: 1,
+    types: { dine: .7, togo: .3 }, ev: { rush: .05, allergy: .1, change: .06, void: .02, e86: true, offline: true, paper: 1.4 } },
+  drivethru: { label: 'DRIVE THRU', items: DRIVE_ITEMS, spawnRate: 4200, maxItems: 3, burst: 2, tight: true,
+    types: { drive: .8, togo: .2 }, ev: { rush: .04, allergy: .04, change: .06, void: .03, e86: true, offline: false, paper: 1.1 } },
+  freeplay: { label: 'FREEPLAY', items: FREE_ITEMS, spawnRate: 9000, maxItems: 4, burst: 2,
+    types: { dine: .55, togo: .2, delivery: .15, drive: .1 }, ev: { rush: .05, allergy: .05, change: .05, void: .02, e86: true, offline: true, paper: 1, ramp: true } },
+  daily: { label: 'DAILY SHIFT', items: DINNER_ITEMS, spawnRate: 5200, maxItems: 4, burst: 2, seeded: true, shiftSec: 300,
+    types: { dine: .6, togo: .12, delivery: .18, drive: .1 }, ev: DINNER_EV }
+};
+const SCN_KEYS = Object.keys(SCENARIOS);
+
+const MODS = ['NO ONION', 'EXTRA PICKLE', 'NO MAYO', 'ADD BACON', 'WELL DONE', 'NO LETTUCE', 'EXTRA SAUCE', 'NO CHEESE', 'ADD JALAPENO', 'LIGHT ICE'];
+const SERVERS = ['KAYLA', 'DEREK', 'LUPE', 'TOMAS', 'ABBY', 'RICO', 'JADE', 'MARCO'];
+const ALLERGENS = ['PEANUT', 'GLUTEN', 'DAIRY', 'SHELLFISH', 'EGG', 'SESAME', 'SOY'];
+const PILE_JAM_LIMIT = 5;
+const EXPO_JAM_LIMIT = 4;
+const RECALL_WINDOW = 15000;
+
+const STATIONS = {
+  grill:    { name: 'GRILL',    scr: 'grillScreen',    cnt: 'grillCount',    lt: 'grillLight',    pile: 'pilGrill',    jam: 'jamGrill',    off: 'offGrill' },
+  fries:    { name: 'FRIES',    scr: 'friesScreen',    cnt: 'friesCount',    lt: 'friesLight',    pile: 'pilFries',    jam: 'jamFries',    off: 'offFries' },
+  sandwich: { name: 'SANDWICH', scr: 'sandwichScreen', cnt: 'sandwichCount', lt: 'sandwichLight', pile: 'pilSandwich', jam: 'jamSandwich', off: 'offSandwich' }
+};
+const ST_KEYS = Object.keys(STATIONS);
+const PRINTERS = {
+  grill: { name: 'GRILL', use: 4 }, fries: { name: 'FRIES', use: 4 }, sandwich: { name: 'SAND', use: 4 },
+  expo: { name: 'EXPO', use: 5 }, label: { name: 'LABEL', use: 2 }
+};
+const PR_KEYS = Object.keys(PRINTERS);
+
+const DEFAULT_SETTINGS = { sound: true, vibe: true, speed: 'normal', motion: true };
+const SPEEDS = { relaxed: .75, normal: 1, hard: 1.3 };
+const SPEED_ORDER = ['relaxed', 'normal', 'hard'];
+
+const ACH = [
+  { id: 'first', name: 'FIRST BUMP', desc: 'Bump your first ticket.', live: s => s.bumped >= 1 },
+  { id: 'grad', name: 'GRADUATE', desc: 'Finish the tutorial.', end: (s, r) => scenarioKey === 'tutorial' && r.done },
+  { id: 'streak10', name: 'ON A ROLL', desc: 'Hit a streak of ten.', live: s => s.bestStreak >= 10 },
+  { id: 'streak25', name: 'LINE LEGEND', desc: 'Hit a streak of twenty five.', live: s => s.bestStreak >= 25 },
+  { id: 'jams10', name: 'JAM BUSTER', desc: 'Clear ten jams in one run.', live: s => s.jams >= 10 },
+  { id: 'rolls5', name: 'ROLL CHANGER', desc: 'Change five paper rolls in one run.', live: s => s.rolls >= 5 },
+  { id: 'reboot', name: 'OFF AND ON AGAIN', desc: 'Reboot a station screen.', live: s => s.reboots >= 1 },
+  { id: 'allergy', name: 'ALLERGY AWARE', desc: 'Confirm ten allergy tickets in one run.', live: s => s.allergiesOk >= 10 },
+  { id: 'e86', name: 'EIGHTY SIXED', desc: 'Call servers on five 86 items in one run.', live: s => s.e86Calls >= 5 },
+  { id: 'rush', name: 'RUSH HOUR HERO', desc: 'Make ten rush tickets on time in one run.', live: s => s.rushOk >= 10 },
+  { id: 'driver', name: 'BEAT THE DRIVER', desc: 'Bump ten delivery tickets before the driver shows up in one run.', live: s => s.beatDriver >= 10 },
+  { id: 'speed', name: 'SPEED OF SERVICE', desc: 'Finish a run with twenty bumps and an average ticket under twenty seconds.', end: (s, r) => s.bumped >= 20 && r.avg < 20 },
+  { id: 'survivor', name: 'SURVIVOR', desc: 'Last five minutes in freeplay.', live: s => scenarioKey === 'freeplay' && s.time >= 300 },
+  { id: 'bus', name: 'BUS PARTY', desc: 'Score ten thousand in huge orders.', live: s => scenarioKey === 'huge' && s.score >= 10000 },
+  { id: 'lanes', name: 'LANE CONTROL', desc: 'Bump fifty cars in one drive thru run.', live: s => scenarioKey === 'drivethru' && s.cars >= 50 },
+  { id: 'shift', name: 'CLOSED OUT', desc: 'Finish a daily shift.', end: (s, r) => scenarioKey === 'daily' && r.done },
+  { id: 'straightA', name: 'STRAIGHT A', desc: 'Earn an A on any run with ten or more bumps.', end: (s, r) => r.grade === 'A' && s.bumped >= 10 },
+  { id: 'lifer', name: 'LIFER', desc: 'Play twenty five runs.', career: c => c.runs >= 25 },
+  { id: 'thousand', name: 'THOUSAND TICKETS', desc: 'Bump one thousand tickets lifetime.', career: c => c.bumped >= 1000 }
+];
+
+const HOW_HTML =
+  '<p>Each station screen shows only the items it cooks. A ticket turns green when it is done cooking. Tap it to bump it out the door. Leave it sitting and it turns orange, then red, and your streak resets.</p>' +
+  '<p>Every bump prints receipts. They stack up from the bottom of each station screen and cover the tickets. Tap a receipt to tear it off. Too many in one pile and that printer jams.</p>' +
+  '<p>The expo printer and the label printer need tearing too. Every printer burns paper. Watch the paper bars in the printer rack at the bottom and tap a unit to change its roll before it runs dry. A dry or jammed printer loses prints.</p>' +
+  '<p>Tickets with a red allergy banner need one tap to confirm the allergy before they can be bumped. Tickets marked 86 hold an item the kitchen ran out of. Tap them to call the server and pull the item. Voided tickets turn grey stripes. Tap them to clear them off the screen.</p>' +
+  '<p>Rush tickets carry an orange edge and go urgent sooner, but pay double when made on time. Drive thru cars run on tighter timers. Delivery tickets show a driver countdown. Bump before the driver arrives for a bonus.</p>' +
+  '<p>Station screens sometimes drop offline. Their tickets print as paper chits until you tap REBOOT. The ALL DAY strip counts every open item across the kitchen and lists anything that is 86. RECALL brings back the last ticket you bumped if you bumped it by mistake.</p>' +
+  '<p>Jams, overdue tickets, dead screens, empty printers, voids, and loose labels drain throughput. When throughput hits empty, the kitchen fails.</p>';
+
+const TUT = [
+  { text: 'Orders fire from the register to every station. Watch the grill ticket cook. When it turns green, tap it to bump it.',
+    setup: () => addOrder({ items: ['CHEESEBURGER'] }), done: s => s.bumped >= 1 },
+  { text: 'Bumping printed a receipt at the bottom of the grill screen. Tap the receipt to tear it off before the pile jams the printer.',
+    done: s => ST_KEYS.every(k => !s.piles[k].length) },
+  { text: 'The expo printer printed a receipt too. It sits on the expo screen. Tap it to tear it.',
+    done: s => !s.expo.length },
+  { text: 'Every order prints a label. Tap the yellow label in the label tray to tear it.',
+    done: s => !s.labels.length },
+  { text: 'This fries ticket has an allergy. Tap it once to confirm the allergy. When it turns green, tap it again to bump it.',
+    setup: () => addOrder({ items: ['FRIES SM'], allergy: 'PEANUT' }), done: s => s.allergiesOk >= 1 && s.bumped >= 2 },
+  { text: 'The expo printer is almost out of paper. Tap the EXPO unit in the printer rack at the very bottom to change the roll.',
+    setup: () => { state.printers.expo.paper = 6; state.printers.expo.low = true; }, done: s => s.rolls >= 1 },
+  { text: 'The kitchen ran out of soft drinks. The new ticket is marked 86. Tap it to call the server and pull the item.',
+    setup: () => { state.e86['SOFT DRINK LG'] = state.ms + 600000; addOrder({ items: ['SOFT DRINK LG', 'CHEESEBURGER'] }); }, done: s => s.e86Calls >= 1 },
+  { text: 'The fries screen dropped offline. Tap REBOOT on the dead screen to bring it back.',
+    setup: () => { state.offline.fries = 'down'; renderOffline('fries'); }, done: s => s.reboots >= 1 && !s.offline.fries },
+  { text: 'Last step. Bump every ticket and tear every receipt and label until the kitchen is clear.',
+    setup: () => { delete state.e86['SOFT DRINK LG']; },
+    done: s => !s.orders.length && !s.expo.length && !s.labels.length && ST_KEYS.every(k => !s.piles[k].length) }
+];
+
+const $ = id => document.getElementById(id);
+let rng = Math.random;
+const rand = arr => arr[Math.floor(rng() * arr.length)];
+const randInt = (a, b) => Math.floor(rng() * (b - a + 1)) + a;
+const chance = p => rng() < p;
+const fmt = sec => Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+
+function makeRng(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+let state = {};
+let cfg = SCENARIOS.freeplay;
+let scenarioKey = 'freeplay';
+let loopInt = null;
+let SET = Object.assign({}, DEFAULT_SETTINGS);
+let ACH_DONE = {};
+let lastAD = '';
+let inGame = false;
+
+/* LOCAL STORAGE */
+function loadStore() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch (e) { return {}; }
+}
+function saveStore(obj) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+function getCallsign() {
+  const v = ($('callsign').value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  return v || 'PLAYER';
+}
+function loadSettings() {
+  const s = loadStore();
+  SET = Object.assign({}, DEFAULT_SETTINGS, s.settings || {});
+  ACH_DONE = s.ach || {};
+  document.body.classList.toggle('nomotion', !SET.motion);
+}
+function saveSettings() {
+  const s = loadStore();
+  s.settings = SET;
+  saveStore(s);
+  document.body.classList.toggle('nomotion', !SET.motion);
+  renderSettings();
+}
+
+/* SOUND AND VIBRATION */
+let actx = null;
+function audio() {
+  if (!SET.sound) return null;
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(f, d, type, vol, delay) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + (delay || 0);
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'square';
+  o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(vol || .05, t);
+  g.gain.exponentialRampToValueAtTime(.0001, t + d);
+  o.connect(g); g.connect(a.destination);
+  o.start(t); o.stop(t + d + .02);
+}
+function noise(d, vol) {
+  const a = audio(); if (!a) return;
+  const n = Math.floor(a.sampleRate * d);
+  const b = a.createBuffer(1, n, a.sampleRate);
+  const ch = b.getChannelData(0);
+  for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / n);
+  const s = a.createBufferSource(); s.buffer = b;
+  const g = a.createGain(); g.gain.value = vol || .08;
+  s.connect(g); g.connect(a.destination); s.start();
+}
+const SFX = {
+  bump: () => { tone(880, .08, 'square', .05); tone(1320, .1, 'square', .05, .08); },
+  tear: () => noise(.07, .1),
+  print: () => { for (let i = 0; i < 4; i++) tone(2200 + i * 40, .02, 'square', .015, i * .03); },
+  jam: () => tone(140, .35, 'sawtooth', .07),
+  alert: () => { tone(660, .12, 'triangle', .07); tone(660, .12, 'triangle', .07, .18); },
+  confirm: () => tone(1046, .12, 'triangle', .06),
+  nope: () => tone(220, .08, 'square', .04),
+  roll: () => { tone(400, .1, 'sine', .06); tone(600, .1, 'sine', .06, .1); tone(800, .14, 'sine', .06, .2); },
+  ach: () => { [523, 659, 784, 1046].forEach((f, i) => tone(f, .14, 'triangle', .06, i * .1)); },
+  fail: () => { [400, 300, 200].forEach((f, i) => tone(f, .25, 'sawtooth', .06, i * .22)); },
+  win: () => { [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, .16, 'square', .05, i * .11)); }
+};
+function sfx(n) { try { if (SFX[n]) SFX[n](); } catch (e) {} }
+function buzz(p) { if (SET.vibe && navigator.vibrate) { try { navigator.vibrate(p); } catch (e) {} } }
+
+/* TOAST */
+let toastT = null;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* MENU */
+function openMenu() {
+  renderMenu();
+  $('menu').classList.remove('hidden');
+  $('menuScrim').classList.remove('hidden');
+  if (inGame && !state.over && !state.paused) pauseGame('menu');
+}
+function closeMenu() {
+  $('menu').classList.add('hidden');
+  $('menuScrim').classList.add('hidden');
+  if (inGame && state.paused && state.pausedBy === 'menu') resumeGame();
+}
+$('hamBtn').addEventListener('click', () => { audio(); $('menu').classList.contains('hidden') ? openMenu() : closeMenu(); });
+$('menuScrim').addEventListener('click', closeMenu);
+$('mResume').addEventListener('click', () => { closeMenu(); if (inGame && state.paused) resumeGame(); });
+$('mRestart').addEventListener('click', () => { closeMenu(); $('gameOver').classList.add('hidden'); initGame(); });
+$('mQuit').addEventListener('click', () => { closeMenu(); goToLanding(); });
+
+function renderSettings() {
+  $('setSound').textContent = SET.sound ? 'ON' : 'OFF';
+  $('setVibe').textContent = SET.vibe ? 'ON' : 'OFF';
+  $('setSpeed').textContent = SET.speed.toUpperCase();
+  $('setMotion').textContent = SET.motion ? 'ON' : 'OFF';
+  ['setSound', 'setVibe', 'setMotion'].forEach(id => $(id).classList.toggle('blue', $(id).textContent === 'ON'));
+  $('setSpeed').classList.add('blue');
+}
+$('setSound').addEventListener('click', () => { SET.sound = !SET.sound; saveSettings(); sfx('confirm'); });
+$('setVibe').addEventListener('click', () => { SET.vibe = !SET.vibe; saveSettings(); buzz(60); });
+$('setSpeed').addEventListener('click', () => { SET.speed = SPEED_ORDER[(SPEED_ORDER.indexOf(SET.speed) + 1) % SPEED_ORDER.length]; saveSettings(); });
+$('setMotion').addEventListener('click', () => { SET.motion = !SET.motion; saveSettings(); });
+
+function careerRows(c) {
+  return [
+    ['RUNS', c.runs || 0], ['TICKETS BUMPED', c.bumped || 0], ['RECEIPTS TORN', c.receipts || 0],
+    ['JAMS CLEARED', c.jams || 0], ['ROLLS CHANGED', c.rolls || 0], ['ALLERGIES CONFIRMED', c.allergies || 0],
+    ['86 CALLS', c.e86 || 0], ['VOIDS CLEARED', c.voids || 0], ['SCREENS REBOOTED', c.reboots || 0],
+    ['BEST STREAK', c.bestStreak || 0], ['TIME ON THE LINE', fmt(c.timeSec || 0)]
+  ];
+}
+function renderMenu() {
+  const s = loadStore();
+  $('mRun').classList.toggle('hidden', !inGame);
+  renderSettings();
+  $('mCareer').innerHTML = careerRows(s.career || {}).map(r => '<div class="m-kv"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('');
+  const h = s.history || [];
+  $('mHist').innerHTML = h.length ? h.map(r =>
+    '<div class="m-hist"><b>' + r.label + '</b> ' + r.date + '<br>SCORE ' + r.score + '  GRADE ' + r.grade + '  ' + fmt(r.time) + (r.done ? '  CLOSED' : '  FAILED') + '</div>'
+  ).join('') : 'NO RUNS YET';
+  $('mAch').innerHTML = ACH.map(a => '<div class="m-kv"><span>' + a.name + '</span><b>' + (ACH_DONE[a.id] ? 'DONE' : '') + '</b></div>').join('');
+  $('mHow').innerHTML = HOW_HTML;
+}
+
+/* LANDING */
+function renderLanding() {
+  const store = loadStore();
+  if (store.callsign) $('callsign').value = store.callsign;
+  SCN_KEYS.forEach(k => {
+    let txt = '';
+    if (k === 'daily') {
+      const today = store.daily && store.daily[todayKey()];
+      txt = 'TODAY ' + todayKey() + (today ? '  YOUR BEST ' + today : '');
+    } else if (k === 'tutorial') {
+      txt = ACH_DONE.grad ? 'COMPLETED' : '';
+    } else {
+      const best = store.best && store.best[k];
+      txt = best ? 'YOUR BEST ' + best : '';
+    }
+    $('best-' + k).textContent = txt;
+    $('board-' + k).textContent = '';
+  });
+  const c = store.career || {};
+  $('careerBox').innerHTML = careerRows(c).map(r => '<div><span>' + r[0] + '</span><b>' + r[1] + '</b></div>').join('');
+  $('achBox').innerHTML = ACH.map(a => '<div class="ach ' + (ACH_DONE[a.id] ? 'on' : 'off') + '"><b>' + a.name + '</b>' + a.desc + '</div>').join('');
+  $('howBox').innerHTML = HOW_HTML;
+  if (API_BASE) {
+    SCN_KEYS.filter(k => k !== 'tutorial').forEach(k => {
+      fetch(API_BASE + '/api/leaderboard/' + k + '?limit=3')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data || !data.entries || !data.entries.length) return;
+          $('board-' + k).textContent = 'TOP ' + data.entries.map(e => e.callsign + ' ' + e.score).join('  ');
+        })
+        .catch(() => {});
+    });
+  }
+}
+
+$('callsign').addEventListener('input', () => {
+  const store = loadStore();
+  store.callsign = getCallsign();
+  saveStore(store);
+});
+
+document.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => { audio(); startScenario(c.dataset.scn); }));
+
+/* VIEW SWITCHING */
+function startScenario(key) {
+  scenarioKey = SCENARIOS[key] ? key : 'freeplay';
+  cfg = SCENARIOS[scenarioKey];
+  $('landing').classList.add('hidden');
+  $('game').classList.remove('hidden');
+  inGame = true;
+  initGame();
+}
+function goToLanding() {
+  stopGame();
+  inGame = false;
+  $('gameOver').classList.add('hidden');
+  $('pauseOv').classList.add('hidden');
+  $('game').classList.add('hidden');
+  $('landing').classList.remove('hidden');
+  renderLanding();
+}
+$('menuBtn2').addEventListener('click', goToLanding);
+$('pauseMenuBtn').addEventListener('click', goToLanding);
+$('retryBtn').addEventListener('click', () => { $('gameOver').classList.add('hidden'); initGame(); });
+$('pauseBtn').addEventListener('click', () => { if (state.over) return; state.paused ? resumeGame() : pauseGame('button'); });
+$('resumeBtn').addEventListener('click', resumeGame);
+$('recallBtn').addEventListener('click', recall);
+document.addEventListener('visibilitychange', () => { if (document.hidden && inGame && !state.over && !state.paused) pauseGame('button'); });
+
+function pauseGame(by) {
+  if (!inGame || state.over) return;
+  state.paused = true;
+  state.pausedBy = by;
+  $('pauseBtn').textContent = 'RESUME';
+  if (by !== 'menu') $('pauseOv').classList.remove('hidden');
+}
+function resumeGame() {
+  if (state.over) return;
+  state.paused = false;
+  state.pausedBy = null;
+  $('pauseBtn').textContent = 'PAUSE';
+  $('pauseOv').classList.add('hidden');
+}
+function stopGame() { clearInterval(loopInt); loopInt = null; }
+
+/* INIT */
+function initGame() {
+  stopGame();
+  loadSettings();
+  rng = cfg.seeded ? makeRng(hashStr('ordersim-' + todayKey())) : Math.random;
+  const printers = {};
+  PR_KEYS.forEach(p => { printers[p] = { paper: cfg.tutorial ? 100 : randInt(55, 100), loading: 0, low: false }; });
+  state = {
+    orders: [], expo: [], labels: [],
+    piles: { grill: [], fries: [], sandwich: [] },
+    stationJam: { grill: false, fries: false, sandwich: false },
+    expoJammed: false, printers,
+    offline: { grill: null, fries: null, sandwich: null },
+    e86: {}, q: [], ms: 0, time: 0, difficulty: 1, over: false, paused: false, pausedBy: null,
+    counter: 0, car: 0, pid: 0, score: 0, bumped: 0, receipts: 0, jams: 0, streak: 0, bestStreak: 0,
+    ticketTimes: [], onTime: 0, rushOk: 0, beatDriver: 0, cars: 0, allergiesOk: 0, voids: 0, e86Calls: 0,
+    rolls: 0, reboots: 0, recalls: 0, lost: 0, labelsTorn: 0,
+    lastBump: null, nextOrderAt: Infinity,
+    next86At: randInt(45, 80) * 1000, nextOffAt: randInt(70, 120) * 1000,
+    tut: cfg.tutorial ? { step: -1 } : null, newAch: [], tp: 100
+  };
+  $('gBadge').textContent = cfg.label;
+  $('pauseBtn').textContent = 'PAUSE';
+  $('pauseOv').classList.add('hidden');
+  $('gameOver').classList.add('hidden');
+  $('timeLabel').textContent = cfg.shiftSec ? 'SHIFT LEFT' : 'TIME';
+  $('allday').classList.toggle('hidden', !!cfg.tutorial);
+  $('tutBar').classList.toggle('hidden', !cfg.tutorial);
+  ST_KEYS.forEach(k => {
+    const s = STATIONS[k];
+    $(s.pile).innerHTML = '';
+    $(s.jam).classList.remove('show');
+    renderOffline(k);
+  });
+  $('expoScreen').innerHTML = '';
+  $('labelTray').innerHTML = '';
+  $('logScreen').innerHTML = '';
+  lastAD = '';
+  buildRack();
+
+  log('ORDERSIM ' + VERSION.toUpperCase() + ' ' + cfg.label, 'info');
+  log('ROUTING POS TO GRILL, FRIES, SANDWICH, EXPO, LABEL', 'info');
+  if (cfg.seeded) log('DAILY SEED ' + todayKey(), 'info');
+
+  for (let i = 0; i < cfg.burst; i++) state.q.push({ at: 1000 + i * 1800, fn: () => addOrder() });
+  if (cfg.spawnRate) state.nextOrderAt = 1000 + cfg.burst * 1800 + cfg.spawnRate;
+  if (state.tut) tutNext();
+
+  renderAll(); checkExpoJam();
+  loopInt = setInterval(tick, TICK);
+}
+
+/* MAIN LOOP */
+function tick() {
+  if (!inGame || state.over || state.paused) return;
+  const dt = TICK * SPEEDS[SET.speed];
+  state.ms += dt;
+  const t = Math.floor(state.ms / 1000);
+  if (t !== state.time) {
+    state.time = t;
+    state.difficulty = 1 + Math.floor(t / 60) * .25;
+  }
+
+  const due = state.q.filter(e => e.at <= state.ms);
+  state.q = state.q.filter(e => e.at > state.ms);
+  due.forEach(e => e.fn());
+  if (state.over) return;
+
+  if (state.ms >= state.nextOrderAt) { addOrder(); scheduleOrder(); }
+  if (cfg.ev.e86 && state.ms >= state.next86At) fire86();
+  Object.keys(state.e86).forEach(n => {
+    if (state.ms >= state.e86[n]) { delete state.e86[n]; log(n + ' BACK ON', 'info'); }
+  });
+  if (cfg.ev.offline && state.ms >= state.nextOffAt) fireOffline();
+
+  PR_KEYS.forEach(p => {
+    const pr = state.printers[p];
+    if (pr.loading && state.ms >= pr.loading) {
+      pr.loading = 0; pr.paper = 100; pr.low = false;
+      log(PRINTERS[p].name + ' ROLL LOADED', 'info');
+    }
+  });
+  ST_KEYS.forEach(st => {
+    const o = state.offline[st];
+    if (typeof o === 'number' && state.ms >= o) {
+      state.offline[st] = null;
+      log(STATIONS[st].name + ' KDS BACK ONLINE', 'info');
+      sfx('confirm');
+      renderOffline(st);
+    }
+  });
+
+  state.orders.forEach(o => {
+    if (o.void) return;
+    o.elapsed += dt;
+    if (o.changeAt && !o.changed && !o.ready && o.elapsed >= o.changeAt) applyChange(o);
+    if (o.voidAt && !o.ready && o.elapsed >= o.voidAt) {
+      o.void = true;
+      log(o.id + ' VOIDED, GUEST LEFT', 'warn');
+      sfx('alert');
+      return;
+    }
+    const r = o.elapsed / o.cook;
+    if (r >= 1 && !o.ready) { o.ready = true; log(o.id + ' READY', 'info'); }
+    if (o.type === 'delivery' && !o.driverHere && o.elapsed >= o.driverEta) {
+      o.driverHere = true;
+      log(o.id + ' DRIVER WAITING', 'warn');
+      if (!o.urgent) { o.urgent = true; state.streak = 0; }
+    }
+    if (r >= o.urgentAt && !o.urgent) { o.urgent = true; state.streak = 0; log(o.id + ' WAITING, BUMP NOW', 'warn'); }
+    if (r >= o.criticalAt && !o.critical) { o.critical = true; o.urgent = true; log(o.id + ' CRITICAL', 'error'); sfx('alert'); }
+  });
+
+  if (cfg.shiftSec && state.time >= cfg.shiftSec) { endRun(true); return; }
+  if (state.tut) tutCheck();
+  if (state.over) return;
+  renderAll();
+}
+
+function renderAll() {
+  renderAllKDS();
+  renderAllDay();
+  renderRack();
+  updateHeader();
+  recalcThroughput();
+}
+
+function after() {
+  renderAllKDS(); renderAllDay(); renderRack(); updateHeader(); recalcThroughput();
+  checkAch('live');
+}
+
+/* ORDERS */
+function evScale() {
+  return cfg.ev.ramp ? Math.min(1.6, state.difficulty / 1.6) : 1;
+}
+function pickType() {
+  const entries = Object.entries(cfg.types);
+  let r = rng(), acc = 0;
+  for (const [k, w] of entries) { acc += w; if (r < acc) return k; }
+  return entries[0][0];
+}
+function generateOrder(opts) {
+  opts = opts || {};
+  const id = '#' + String(++state.counter).padStart(3, '0');
+  const names = Object.keys(cfg.items);
+  const cnt = opts.items ? opts.items.length : randInt(1, cfg.maxItems);
+  const items = [];
+  let cook = 0;
+  for (let i = 0; i < cnt; i++) {
+    const name = opts.items ? opts.items[i] : rand(names);
+    const [station, secs] = cfg.items[name];
+    items.push({ name, station, mod: opts.items ? null : (chance(.28) ? rand(MODS) : null), qty: opts.items ? 1 : (chance(.18) ? 2 : 1), chg: false });
+    cook = Math.max(cook, secs * 1000);
+  }
+  const ev = cfg.ev, sc = evScale();
+  const type = opts.type || pickType();
+  const o = {
+    id, items, cook, elapsed: 0, server: rand(SERVERS), type, firedAt: state.ms,
+    ready: false, urgent: false, critical: false, void: false, changed: false, driverHere: false,
+    rush: opts.rush != null ? opts.rush : (ev.rush ? chance(ev.rush * sc) : false),
+    allergy: opts.allergy != null ? opts.allergy : (ev.allergy && chance(ev.allergy * sc) ? rand(ALLERGENS) : null),
+    allergyOk: false,
+    e86: [...new Set(items.filter(i => state.e86[i.name]).map(i => i.name))]
+  };
+  if (type === 'dine') { o.table = randInt(1, 26); o.ref = 'TBL ' + o.table; o.lbl = 'T' + o.table; }
+  else if (type === 'togo') { o.ref = 'TO GO'; o.lbl = 'TOGO'; }
+  else if (type === 'drive') { o.lane = randInt(1, 2); o.car = ++state.car; o.ref = 'LANE ' + o.lane + ' CAR ' + o.car; o.lbl = 'CAR' + o.car; }
+  else { o.ref = 'DELIVERY'; o.lbl = 'DLVR'; o.driverEta = cook + randInt(4, 22) * 1000; }
+  o.urgentAt = o.rush ? 1.3 : 1.6;
+  o.criticalAt = o.rush ? 1.9 : 2.4;
+  if (cfg.tight || type === 'drive') { o.urgentAt *= .85; o.criticalAt *= .85; }
+  if (!cfg.tutorial) {
+    if (ev.change && chance(ev.change * sc)) o.changeAt = cook * (.2 + rng() * .5);
+    if (ev.void && chance(ev.void * sc)) o.voidAt = cook * (.15 + rng() * .6);
+  }
+  return o;
+}
+
+function liveOrders() { return state.orders.filter(o => !o.void).length; }
+
+function addOrder(opts) {
+  if (state.over || liveOrders() >= 14) return;
+  const o = generateOrder(opts);
+  state.orders.push(o);
+  const stns = [...new Set(o.items.map(i => i.station))];
+  log('ORDER ' + o.id + ' TO ' + stns.join(' + ').toUpperCase() + ' ' + o.ref + (o.rush ? ' RUSH' : '') + (o.allergy ? ' ALLERGY ' + o.allergy : ''), o.rush || o.allergy ? 'warn' : 'info');
+  if (o.e86.length) { log(o.id + ' HAS 86 ITEM ' + o.e86.join(', '), 'error'); sfx('alert'); }
+  stns.forEach(st => { if (state.offline[st]) spawnPile(st, o, true); });
+  state.q.push({ at: state.ms + 350, fn: () => { if (!state.over) spawnLabel(o); } });
+  sfx('print');
+  renderAllKDS(); renderAllDay();
+}
+
+function scheduleOrder() {
+  if (state.over) return;
+  const delay = Math.max(3000, cfg.spawnRate - state.difficulty * 1000 + randInt(-1500, 1500));
+  state.nextOrderAt = state.ms + delay;
+}
+
+function applyChange(o) {
+  const it = rand(o.items);
+  const m = rand(MODS.filter(x => x !== it.mod));
+  it.mod = m; it.chg = true;
+  o.changed = true;
+  o.cook += 4000;
+  log(o.id + ' CHANGED, ' + it.name + ' ' + m, 'warn');
+  sfx('alert');
+}
+
+/* EVENTS */
+function fire86() {
+  state.next86At = state.ms + randInt(60, 110) * 1000;
+  const names = Object.keys(cfg.items).filter(n => !state.e86[n]);
+  if (!names.length) return;
+  const n = rand(names);
+  state.e86[n] = state.ms + randInt(40, 65) * 1000;
+  log('86 ' + n + ', OUT OF STOCK', 'error');
+  sfx('alert'); buzz(80);
+}
+
+function fireOffline() {
+  state.nextOffAt = state.ms + randInt(80, 140) * 1000;
+  const cands = ST_KEYS.filter(s => !state.offline[s]);
+  if (!cands.length) return;
+  const st = rand(cands);
+  state.offline[st] = 'down';
+  log(STATIONS[st].name + ' KDS OFFLINE, FALLING BACK TO PRINTER', 'error');
+  sfx('jam'); buzz([120, 60, 120]);
+  renderOffline(st);
+  state.orders.filter(o => !o.void && o.items.some(i => i.station === st)).forEach(o => spawnPile(st, o, true));
+}
+
+function renderOffline(st) {
+  const el = $(STATIONS[st].off);
+  const o = state.offline ? state.offline[st] : null;
+  el.classList.toggle('show', !!o);
+  const b = el.querySelector('button');
+  if (o === 'down') { b.textContent = 'REBOOT'; b.classList.add('blue'); }
+  else if (o) { b.textContent = 'BOOTING'; b.classList.remove('blue'); }
+}
+
+document.querySelectorAll('[data-reboot]').forEach(b => b.addEventListener('click', e => {
+  e.stopPropagation();
+  const st = b.dataset.reboot;
+  if (state.over || state.paused || state.offline[st] !== 'down') return;
+  state.offline[st] = state.ms + 4000;
+  state.reboots++;
+  state.score += 40;
+  log('REBOOTING ' + STATIONS[st].name + ' KDS +40', 'info');
+  sfx('roll');
+  renderOffline(st);
+  after();
+}));
+
+/* KDS */
+function renderAllKDS() { ST_KEYS.forEach(renderStation); }
+
+function ticketSort(a, b) {
+  if (a.rush !== b.rush) return a.rush ? -1 : 1;
+  return a.firedAt - b.firedAt;
+}
+
+function renderStation(st) {
+  const s = STATIONS[st];
+  const screen = $(s.scr);
+  const orders = state.orders.filter(o => o.items.some(i => i.station === st)).sort(ticketSort);
+  $(s.cnt).textContent = orders.filter(o => !o.void).length;
+  const lt = $(s.lt);
+  lt.className = 'lt' + (orders.some(o => o.critical || o.void) ? ' bad' : orders.some(o => o.urgent || o.e86.length || (o.allergy && !o.allergyOk)) ? ' warn' : orders.length ? ' ok' : '');
+  if (!orders.length) { screen.innerHTML = '<div class="empty">AWAITING ORDERS</div>'; return; }
+  screen.innerHTML = orders.map(o => {
+    const pct = Math.min(100, o.elapsed / o.cook * 100);
+    let cls = o.void ? 'void' : o.critical ? 'critical' : o.urgent ? 'urgent' : o.ready ? 'ready' : 'pending';
+    if (o.rush) cls += ' rush';
+    let status = o.void ? 'VOID' : o.ready ? (o.critical ? 'OVERDUE' : o.urgent ? 'WAITING' : 'READY') : Math.ceil((o.cook - o.elapsed) / 1000) + 's';
+    if (o.type === 'delivery' && !o.void) {
+      status += '<br>' + (o.driverHere ? 'DRIVER HERE' : 'DRIVER ' + Math.max(0, Math.ceil((o.driverEta - o.elapsed) / 1000)) + 's');
+    }
+    let flag = '';
+    if (o.void) flag = '<div class="flag void">VOID, TAP TO CLEAR</div>';
+    else if (o.e86.length) flag = '<div class="flag e86">86 ' + o.e86.join(', ') + ', TAP TO CALL ' + o.server + '</div>';
+    else if (o.allergy && !o.allergyOk) flag = '<div class="flag allergy">ALLERGY ' + o.allergy + ', TAP TO CONFIRM</div>';
+    else if (o.allergy) flag = '<div class="flag allok">ALLERGY ' + o.allergy + ' CONFIRMED</div>';
+    const chips = '<div class="t-chips">' + (o.rush ? '<span class="chip rush">RUSH</span>' : '') +
+      '<span class="chip ' + o.type + '">' + (o.type === 'dine' ? 'DINE IN' : o.type === 'togo' ? 'TO GO' : o.type === 'drive' ? 'DRIVE THRU' : 'DELIVERY') + '</span>' +
+      (o.changed ? '<span class="chip chg">CHANGED</span>' : '') + '</div>';
+    const its = o.items.filter(i => i.station === st).map(i =>
+      '<span class="i-name' + (o.e86.includes(i.name) ? ' out' : '') + '">' + (i.qty > 1 ? i.qty + 'x ' : '') + i.name + '</span>' +
+      (i.mod ? '<span class="i-mod' + (i.chg ? ' chg' : '') + '">' + (i.chg ? 'CHG ' : '') + i.mod + '</span>' : '')
+    ).join('');
+    const tapTxt = o.void || o.e86.length || (o.allergy && !o.allergyOk) ? '' : 'TAP TO BUMP';
+    return '<div class="ticket ' + cls + '" data-id="' + o.id + '">' + flag +
+      '<div class="t-hd"><span class="t-id">' + o.id + '</span><span class="t-meta">' + o.ref + '<br>' + status + '</span></div>' + chips +
+      '<div class="t-items">' + its + '</div>' +
+      '<div class="t-bar"><div class="t-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="t-tap">' + tapTxt + '</div></div>';
+  }).join('');
+}
+
+ST_KEYS.forEach(st => {
+  $(STATIONS[st].scr).addEventListener('click', e => {
+    const t = e.target.closest('.ticket');
+    if (t) tapTicket(t.dataset.id);
+  });
+  $(STATIONS[st].pile).addEventListener('click', e => {
+    const r = e.target.closest('.pile-r');
+    if (r) tearPile(st, r.dataset.pid);
+  });
+});
+
+function removeOrder(o) {
+  const idx = state.orders.indexOf(o);
+  if (idx !== -1) state.orders.splice(idx, 1);
+}
+
+function tapTicket(id) {
+  if (state.over || state.paused) return;
+  const o = state.orders.find(x => x.id === id);
+  if (!o) return;
+  if (o.void) {
+    removeOrder(o);
+    state.voids++; state.score += 15;
+    log(o.id + ' VOID CLEARED +15', 'info');
+    sfx('tear'); after(); return;
+  }
+  if (o.e86.length) {
+    const pulled = o.e86.slice();
+    o.items = o.items.filter(i => !pulled.includes(i.name));
+    o.e86 = [];
+    state.e86Calls++; state.score += 20;
+    log('CALLED ' + o.server + ' ON ' + o.id + ', PULLED ' + pulled.join(', ') + ' +20', 'info');
+    sfx('confirm');
+    if (!o.items.length) { removeOrder(o); log(o.id + ' CLOSED, NOTHING LEFT TO MAKE', 'info'); }
+    after(); return;
+  }
+  if (o.allergy && !o.allergyOk) {
+    o.allergyOk = true;
+    state.allergiesOk++; state.score += 25;
+    log(o.id + ' ALLERGY ' + o.allergy + ' CONFIRMED +25', 'info');
+    sfx('confirm'); after(); return;
+  }
+  if (!o.ready) { log(o.id + ' NOT READY', 'warn'); sfx('nope'); return; }
+  bumpOrder(o);
+}
+
+function bumpOrder(o) {
+  removeOrder(o);
+  state.bumped++; state.streak++;
+  state.bestStreak = Math.max(state.bestStreak, state.streak);
+  state.ticketTimes.push(Math.round(o.elapsed / 1000));
+  if (!o.urgent) state.onTime++;
+  let pts = 100 + (o.critical ? 0 : o.urgent ? 50 : 100) + state.streak * 10;
+  const notes = [];
+  const flags = { rush: false, driver: false };
+  if (o.rush && !o.urgent) { pts += 100; state.rushOk++; flags.rush = true; notes.push('RUSH MADE'); }
+  if (o.type === 'delivery' && !o.driverHere) { pts += 60; state.beatDriver++; flags.driver = true; notes.push('BEAT DRIVER'); }
+  if (o.type === 'drive') { state.cars++; if (!o.urgent) pts += 40; }
+  state.score += pts;
+  state.lastBump = { o, pts, at: state.ms, flags };
+  log('BUMP ' + o.id + ' +' + pts + (notes.length ? ' ' + notes.join(' ') : ''), 'info');
+  spawnExpo(o);
+  [...new Set(o.items.map(i => i.station))].forEach(st => spawnPile(st, o, false));
+  showFloat('+' + pts);
+  sfx('bump');
+  if (state.streak > 0 && state.streak % 10 === 0) { toast('STREAK ' + state.streak); log('STREAK ' + state.streak, 'info'); }
+  after();
+}
+
+function recall() {
+  if (!inGame || state.over || state.paused) return;
+  const lb = state.lastBump;
+  if (!lb || state.ms - lb.at > RECALL_WINDOW) { state.lastBump = null; log('NOTHING TO RECALL', 'warn'); sfx('nope'); updateHeader(); return; }
+  const o = lb.o;
+  state.orders.push(o);
+  state.score = Math.max(0, state.score - lb.pts);
+  state.bumped--; state.ticketTimes.pop();
+  if (!o.urgent) state.onTime--;
+  if (lb.flags.rush) state.rushOk--;
+  if (lb.flags.driver) state.beatDriver--;
+  if (o.type === 'drive') state.cars--;
+  state.streak = 0; state.recalls++;
+  state.lastBump = null;
+  log('RECALLED ' + o.id + ' -' + lb.pts, 'warn');
+  sfx('alert');
+  after();
+}
+
+/* PAPER */
+function usePaper(p) {
+  const pr = state.printers[p];
+  const nm = PRINTERS[p].name;
+  if (pr.loading) { log(nm + ' LOADING PAPER, PRINT LOST', 'error'); return false; }
+  if (pr.paper <= 0) { log(nm + ' OUT OF PAPER, PRINT LOST', 'error'); return false; }
+  pr.paper = Math.max(0, pr.paper - PRINTERS[p].use * (cfg.ev.paper || 1));
+  if (pr.paper <= 0) {
+    log(nm + ' OUT OF PAPER', 'error');
+    sfx('jam'); buzz([80, 40, 80]);
+    state.streak = 0;
+  } else if (pr.paper < 20 && !pr.low) {
+    pr.low = true;
+    log(nm + ' PAPER LOW', 'warn');
+  }
+  return true;
+}
+function losePrint() { state.lost++; state.score = Math.max(0, state.score - 15); }
+
+function changeRoll(p) {
+  if (!inGame || state.over || state.paused) return;
+  const pr = state.printers[p];
+  if (pr.loading) return;
+  if (pr.paper >= 100) { sfx('nope'); return; }
+  const bonus = pr.paper < 25 ? 30 : 0;
+  pr.loading = state.ms + 2000;
+  state.rolls++; state.score += bonus;
+  log('CHANGING ' + PRINTERS[p].name + ' ROLL' + (bonus ? ' +30' : ''), 'info');
+  sfx('roll');
+  after();
+}
+
+function buildRack() {
+  $('rack').innerHTML = PR_KEYS.map(p =>
+    '<button class="p-unit" data-p="' + p + '"><div class="p-top"><div class="p-led" id="led-' + p + '"></div><div class="p-name">' + PRINTERS[p].name + '</div></div>' +
+    '<div class="p-q" id="pq-' + p + '">QUEUE 0</div><div class="p-paper"><div class="p-pf" id="pf-' + p + '"></div></div></button>'
+  ).join('');
+}
+$('rack').addEventListener('click', e => {
+  const u = e.target.closest('.p-unit');
+  if (u) changeRoll(u.dataset.p);
+});
+
+function printerJammed(p) {
+  if (p === 'expo') return state.expoJammed;
+  if (p === 'label') return false;
+  return state.stationJam[p];
+}
+function printerQueue(p) {
+  if (p === 'expo') return state.expo.length;
+  if (p === 'label') return state.labels.length;
+  return state.piles[p].length;
+}
+function renderRack() {
+  PR_KEYS.forEach(p => {
+    const pr = state.printers[p];
+    const led = $('led-' + p), q = $('pq-' + p), pf = $('pf-' + p);
+    if (!led) return;
+    let ledCls = 'p-led', txt = 'QUEUE ' + printerQueue(p), bad = false;
+    if (pr.loading) { ledCls += ' load'; txt = 'LOADING'; }
+    else if (pr.paper <= 0) { ledCls += ' jam'; txt = 'NO PAPER'; bad = true; }
+    else if (printerJammed(p)) { ledCls += ' jam'; txt = 'JAMMED'; bad = true; }
+    else if (pr.paper < 20) { ledCls += ' warn'; txt = 'LOW ' + Math.ceil(pr.paper) + '%'; }
+    else if (printerQueue(p)) ledCls += ' on';
+    led.className = ledCls;
+    q.textContent = txt;
+    q.classList.toggle('bad', bad);
+    pf.style.width = (pr.loading ? 100 : pr.paper) + '%';
+    pf.style.background = pr.paper < 20 && !pr.loading ? 'var(--bad)' : pr.paper < 40 && !pr.loading ? '#ffb300' : 'var(--blue)';
+  });
+}
+
+/* STATION PILES */
+function spawnPile(st, o, chit) {
+  if (state.stationJam[st]) { log(STATIONS[st].name + ' PRINTER JAMMED, TICKET LOST', 'error'); losePrint(); return; }
+  if (!usePaper(st)) { losePrint(); return; }
+  const r = { id: st + '-' + (++state.pid), orderId: o.id, ref: o.ref, items: o.items.filter(i => i.station === st) };
+  state.piles[st].push(r);
+  const div = document.createElement('div');
+  div.className = 'pile-r' + (chit ? ' chit' : '');
+  div.dataset.pid = r.id;
+  div.innerHTML = '<span class="pr-tear">TEAR</span><span class="pr-id">' + (chit ? 'CHIT ' : '') + r.orderId + ' ' + r.ref + '</span><br>' +
+    r.items.map(i => (i.qty > 1 ? i.qty + 'x ' : '') + i.name).join(', ');
+  $(STATIONS[st].pile).appendChild(div);
+  checkStationJam(st);
+}
+
+function tearPile(st, pid) {
+  if (state.over || state.paused) return;
+  state.piles[st] = state.piles[st].filter(r => r.id !== pid);
+  const elr = $(STATIONS[st].pile).querySelector('[data-pid="' + pid + '"]');
+  if (elr) elr.remove();
+  if (state.stationJam[st] && state.piles[st].length < PILE_JAM_LIMIT) {
+    state.stationJam[st] = false;
+    state.jams++;
+    log(STATIONS[st].name + ' JAM CLEARED', 'info');
+  }
+  state.receipts++; state.score += 20;
+  sfx('tear');
+  checkStationJam(st); after();
+}
+
+function checkStationJam(st) {
+  const s = STATIONS[st];
+  const n = state.piles[st].length;
+  if (n >= PILE_JAM_LIMIT && !state.stationJam[st]) {
+    state.stationJam[st] = true;
+    state.streak = 0;
+    log(s.name + ' PRINTER JAMMED', 'error');
+    sfx('jam'); buzz([100, 50, 100]);
+  }
+  $(s.jam).classList.toggle('show', state.stationJam[st]);
+  $(s.pile).querySelectorAll('.pile-r').forEach(r => r.classList.toggle('jammed', state.stationJam[st]));
+  renderRack(); updateHeader(); recalcThroughput();
+}
+
+/* EXPO */
+function spawnExpo(o) {
+  if (!usePaper('expo')) { losePrint(); return; }
+  state.expo.push(o.id);
+  const div = document.createElement('div');
+  div.className = 'expo-r';
+  div.dataset.eid = o.id;
+  div.innerHTML = '<div class="er-id">' + o.id + ' ' + o.ref + '</div>' +
+    (o.allergy ? '<b>ALLERGY ' + o.allergy + '</b><br>' : '') +
+    o.items.map(i => (i.qty > 1 ? i.qty + 'x ' : '') + i.name + (i.mod ? ' (' + i.mod + ')' : '')).join('<br>') +
+    '<div class="er-svr">SVR ' + o.server + '  TAP TO TEAR</div>';
+  $('expoScreen').appendChild(div);
+  $('expoScreen').scrollTop = $('expoScreen').scrollHeight;
+  renderExpo();
+  checkExpoJam();
+}
+
+$('expoScreen').addEventListener('click', e => {
+  const r = e.target.closest('.expo-r');
+  if (!r || state.over || state.paused) return;
+  const idx = state.expo.indexOf(r.dataset.eid);
+  if (idx !== -1) state.expo.splice(idx, 1);
+  r.remove();
+  if (state.expoJammed && state.expo.length < EXPO_JAM_LIMIT) {
+    state.expoJammed = false; state.jams++;
+    log('EXPO JAM CLEARED', 'info');
+  }
+  state.receipts++; state.score += 25;
+  sfx('tear');
+  renderExpo(); checkExpoJam(); after();
+});
+
+function renderExpo() {
+  const scr = $('expoScreen');
+  const empty = scr.querySelector('.empty');
+  if (!state.expo.length && !empty) scr.innerHTML = '<div class="empty">NO RECEIPTS</div>';
+  if (state.expo.length && empty) empty.remove();
+}
+
+function checkExpoJam() {
+  const n = state.expo.length;
+  if (n >= EXPO_JAM_LIMIT && !state.expoJammed) {
+    state.expoJammed = true; state.streak = 0;
+    log('EXPO PAPER JAM', 'error');
+    sfx('jam'); buzz([100, 50, 100]);
+  }
+  $('expoLight').className = 'lt ' + (state.expoJammed ? 'bad' : n >= EXPO_JAM_LIMIT - 1 ? 'warn' : 'ok');
+  $('expoStatus').textContent = state.expoJammed ? 'JAMMED' : n >= EXPO_JAM_LIMIT - 1 ? 'WARNING' : 'READY';
+  $('expoScreen').querySelectorAll('.expo-r').forEach(r => r.classList.toggle('jammed', state.expoJammed));
+}
+
+/* LABELS */
+function spawnLabel(o) {
+  if (!usePaper('label')) { losePrint(); return; }
+  const l = { id: 'L' + o.id + '-' + (++state.pid), text: 'L' + o.id + ' ' + o.lbl };
+  state.labels.push(l);
+  const d = document.createElement('div');
+  d.className = 'lbl';
+  d.dataset.lid = l.id;
+  d.textContent = l.text;
+  $('labelTray').appendChild(d);
+  renderLabels();
+}
+
+$('labelTray').addEventListener('click', e => {
+  const d = e.target.closest('.lbl');
+  if (!d || state.over || state.paused) return;
+  state.labels = state.labels.filter(l => l.id !== d.dataset.lid);
+  d.remove();
+  state.score += 10; state.labelsTorn++;
+  sfx('tear');
+  renderLabels(); after();
+});
+
+function renderLabels() {
+  const tray = $('labelTray');
+  const empty = tray.querySelector('.empty');
+  if (!state.labels.length && !empty) tray.innerHTML = '<div class="empty">NO LABELS</div>';
+  if (state.labels.length && empty) empty.remove();
+  $('labelCount').textContent = state.labels.length;
+  $('labelLight').className = 'lt' + (state.labels.length >= 6 ? ' warn' : state.labels.length ? ' ok' : '');
+}
+
+/* ALL DAY */
+function renderAllDay() {
+  if (cfg.tutorial) return;
+  const m = {};
+  state.orders.forEach(o => { if (!o.void) o.items.forEach(i => { m[i.name] = (m[i.name] || 0) + i.qty; }); });
+  const chips = Object.keys(state.e86).map(n => '<span class="ad c86">86 ' + n + '</span>')
+    .concat(Object.entries(m).sort((a, b) => b[1] - a[1]).map(([n, c]) => '<span class="ad">' + c + ' ' + n + '</span>'));
+  const html = chips.join('') || '<span class="ad-empty">NOTHING OPEN</span>';
+  if (html !== lastAD) { $('adChips').innerHTML = html; lastAD = html; }
+}
+
+/* LOG */
+function log(msg, type) {
+  const s = $('logScreen');
+  const d = document.createElement('div');
+  d.className = 'log-e ' + (type || '');
+  d.textContent = fmt(state.time || 0) + ' ' + msg;
+  s.appendChild(d);
+  while (s.children.length > 80) s.removeChild(s.firstChild);
+  s.scrollTop = s.scrollHeight;
+}
+
+/* THROUGHPUT */
+function recalcThroughput() {
+  if (state.over) return;
+  let tp = 100;
+  if (state.expoJammed) tp -= 20;
+  ST_KEYS.forEach(st => {
+    if (state.stationJam[st]) tp -= 18;
+    if (state.offline[st]) tp -= 15;
+  });
+  PR_KEYS.forEach(p => { const pr = state.printers[p]; if (pr.paper <= 0 && !pr.loading) tp -= 12; });
+  state.orders.forEach(o => {
+    if (o.void) tp -= 3;
+    else if (o.critical) tp -= 10;
+    else if (o.urgent) tp -= 4;
+    if (!o.void && o.e86.length) tp -= 3;
+  });
+  tp -= state.labels.length * 2;
+  tp = Math.max(0, Math.min(100, tp));
+  if (cfg.tutorial) tp = Math.max(25, tp);
+  state.tp = tp;
+  $('tpFill').style.width = tp + '%';
+  $('tpFill').style.background = tp > 65 ? 'var(--ok)' : tp > 35 ? '#ffb300' : 'var(--bad)';
+  $('tpPct').textContent = tp + '%';
+  if (tp <= 0) endRun(false);
+}
+
+function avgTicket() {
+  const t = state.ticketTimes;
+  return t.length ? Math.round(t.reduce((a, b) => a + b, 0) / t.length) : 0;
+}
+function onTimeRate() {
+  return state.bumped ? state.onTime / state.bumped : 1;
+}
+
+function updateHeader() {
+  $('scoreDisplay').textContent = state.score;
+  $('streakDisplay').textContent = state.streak;
+  $('timeDisplay').textContent = cfg.shiftSec ? fmt(Math.max(0, cfg.shiftSec - state.time)) : fmt(state.time);
+  $('avgDisplay').textContent = avgTicket() + 's';
+  $('onTimeDisplay').textContent = Math.round(onTimeRate() * 100) + '%';
+  $('jamCount').textContent = state.jams + ' JAMS';
+  const canRecall = state.lastBump && state.ms - state.lastBump.at <= RECALL_WINDOW;
+  $('recallBtn').classList.toggle('dim', !canRecall);
+}
+
+function showFloat(text) {
+  if (!SET.motion) return;
+  const f = document.createElement('div');
+  f.className = 'sfloat';
+  f.textContent = text;
+  f.style.left = (20 + Math.random() * 45) + '%';
+  f.style.top = (30 + Math.random() * 25) + '%';
+  document.body.appendChild(f);
+  requestAnimationFrame(() => { f.style.opacity = '1'; f.style.transform = 'translateY(-24px)'; });
+  setTimeout(() => { f.style.opacity = '0'; setTimeout(() => f.remove(), 600); }, 500);
+}
+
+/* TUTORIAL */
+function tutNext() {
+  state.tut.step++;
+  if (state.tut.step >= TUT.length) { endRun(true); return; }
+  const st = TUT[state.tut.step];
+  $('tutStep').textContent = 'STEP ' + (state.tut.step + 1) + ' OF ' + TUT.length;
+  $('tutText').textContent = st.text;
+  if (st.setup) st.setup();
+  sfx('confirm');
+  renderAll();
+}
+function tutCheck() {
+  const st = TUT[state.tut.step];
+  if (st && st.done(state)) tutNext();
+}
+
+/* ACHIEVEMENTS */
+function checkAch(mode, r, career) {
+  let changed = false;
+  ACH.forEach(a => {
+    if (ACH_DONE[a.id]) return;
+    let hit = false;
+    if (mode === 'live' && a.live) hit = a.live(state);
+    if (mode === 'end') hit = (a.live && a.live(state)) || (a.end && a.end(state, r)) || (a.career && career && a.career(career));
+    if (hit) {
+      ACH_DONE[a.id] = todayKey();
+      state.newAch.push(a.name);
+      changed = true;
+      toast('ACHIEVEMENT ' + a.name);
+      sfx('ach');
+    }
+  });
+  if (changed) {
+    const s = loadStore();
+    s.ach = Object.assign(s.ach || {}, ACH_DONE);
+    saveStore(s);
+  }
+}
+
+/* END OF RUN */
+function gradeFor(rate, bumped, done) {
+  if (cfg.tutorial) return done ? 'PASS' : 'INC';
+  if (bumped < 3) return 'F';
+  let g = rate >= .9 ? 'A' : rate >= .75 ? 'B' : rate >= .6 ? 'C' : rate >= .4 ? 'D' : 'F';
+  if (!done && cfg.shiftSec && (g === 'A' || g === 'B')) g = 'C';
+  return g;
+}
+
+function endRun(done) {
+  if (state.over) return;
+  state.over = true;
+  stopGame();
+  log(done ? 'SHIFT COMPLETE' : 'SYSTEM FAILURE', done ? 'info' : 'error');
+  const avg = avgTicket();
+  const longest = state.ticketTimes.length ? Math.max.apply(null, state.ticketTimes) : 0;
+  const rate = onTimeRate();
+  const grade = gradeFor(rate, state.bumped, done);
+  const r = { done, avg, longest, rate, grade };
+
+  const store = loadStore();
+  let bestLine = '';
+  if (!cfg.tutorial) {
+    store.best = store.best || {};
+    const prev = store.best[scenarioKey] || 0;
+    const isBest = state.score > prev;
+    if (isBest) store.best[scenarioKey] = state.score;
+    bestLine = isBest ? 'NEW BEST FOR ' + cfg.label : 'BEST ' + store.best[scenarioKey];
+    if (scenarioKey === 'daily') {
+      store.daily = store.daily || {};
+      const dk = todayKey();
+      if (state.score > (store.daily[dk] || 0)) store.daily[dk] = state.score;
+      const keys = Object.keys(store.daily).sort();
+      while (keys.length > 30) delete store.daily[keys.shift()];
+    }
+  } else {
+    bestLine = done ? 'TUTORIAL COMPLETE' : '';
+  }
+  const c = store.career = store.career || {};
+  c.runs = (c.runs || 0) + 1;
+  c.bumped = (c.bumped || 0) + state.bumped;
+  c.receipts = (c.receipts || 0) + state.receipts + state.labelsTorn;
+  c.jams = (c.jams || 0) + state.jams;
+  c.rolls = (c.rolls || 0) + state.rolls;
+  c.allergies = (c.allergies || 0) + state.allergiesOk;
+  c.e86 = (c.e86 || 0) + state.e86Calls;
+  c.voids = (c.voids || 0) + state.voids;
+  c.reboots = (c.reboots || 0) + state.reboots;
+  c.bestStreak = Math.max(c.bestStreak || 0, state.bestStreak);
+  c.timeSec = (c.timeSec || 0) + state.time;
+  store.history = store.history || [];
+  store.history.unshift({ label: cfg.label, score: state.score, grade, time: state.time, done, date: todayKey() });
+  store.history = store.history.slice(0, 15);
+  store.callsign = getCallsign();
+  saveStore(store);
+
+  checkAch('end', r, c);
+
+  const title = $('goTitle');
+  title.textContent = done ? (cfg.tutorial ? 'TUTORIAL COMPLETE' : 'SHIFT COMPLETE') : 'SYSTEM FAILURE';
+  title.classList.toggle('win', done);
+  $('goSub').textContent = done ? (cfg.tutorial ? 'YOU KNOW THE WHOLE KITCHEN NOW' : 'CLOSED OUT CLEAN') : 'KITCHEN THROUGHPUT COLLAPSED';
+  $('goGrade').textContent = grade;
+  $('finalScore').textContent = state.score;
+  $('finalBest').textContent = bestLine;
+  const rows = [
+    ['TICKETS BUMPED', state.bumped], ['AVG TICKET TIME', avg + 's'], ['LONGEST TICKET', longest + 's'],
+    ['ON TIME', Math.round(rate * 100) + '%'], ['BEST STREAK', state.bestStreak], ['RUSHES MADE', state.rushOk],
+    ['DRIVERS BEATEN', state.beatDriver], ['ALLERGIES CONFIRMED', state.allergiesOk], ['86 CALLS', state.e86Calls],
+    ['VOIDS CLEARED', state.voids], ['RECEIPTS TORN', state.receipts], ['LABELS TORN', state.labelsTorn],
+    ['JAMS CLEARED', state.jams], ['ROLLS CHANGED', state.rolls], ['SCREENS REBOOTED', state.reboots],
+    ['PRINTS LOST', state.lost], ['RECALLS', state.recalls], ['TIME', fmt(state.time)]
+  ];
+  $('finalStats').innerHTML = rows.map(x => '<div><span>' + x[0] + '</span><b>' + x[1] + '</b></div>').join('');
+  $('goAch').innerHTML = state.newAch.length ? 'UNLOCKED<br>' + state.newAch.join('<br>') : '';
+  $('gameOver').classList.remove('hidden');
+  sfx(done ? 'win' : 'fail');
+  buzz(done ? [60, 40, 60] : [300]);
+
+  if (API_BASE && !cfg.tutorial) {
+    fetch(API_BASE + '/api/runs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        callsign: getCallsign(),
+        scenario: scenarioKey,
+        score: state.score,
+        bumped: state.bumped,
+        receipts: state.receipts,
+        jams: state.jams,
+        durationSec: state.time,
+        version: VERSION
+      })
+    }).catch(() => {});
+  }
+}
+
+loadSettings();
+renderLanding();
+</script>
+</body>
+</html>

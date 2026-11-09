@@ -10,7 +10,7 @@ The backend is a small Node and Express service called ordersim-v2-api that runs
 
 How the game connects
 
-Near the top of the script in index.html there is a line that sets API_BASE to an empty value. While it is empty, the game runs offline and only keeps local best scores. Once the backend is live, that value gets set to the Railway domain with the https prefix and no trailing slash. After that, the landing page shows the top callsigns under each scenario card, and every game over sends the run to the backend.
+Near the top of the script in ordersim-v3.html there is a line that sets API_BASE to an empty value. While it is empty, the game runs offline and only keeps local best scores. Once the backend is live, that value gets set to the Railway domain with the https prefix and no trailing slash. After that, the landing page shows the top callsigns under each scenario card, and every game over sends the run to the backend.
 
 Endpoints
 
@@ -24,7 +24,7 @@ GET /api/runs/SCENARIO returns the most recent runs for that scenario, newest fi
 
 GET /api/stats returns the global totals.
 
-Valid scenario names are breakfast, dinner, huge, and freeplay.
+Valid scenario names are breakfast, dinner, huge, freeplay, drivethru, and daily. The tutorial never submits.
 
 Data stored in Redis
 
@@ -60,7 +60,7 @@ PORT is set by Railway automatically.
 
 Files
 
-index.html is the game frontend, deployed to Vercel from the repo root.
+ordersim-v3.html is the game frontend, deployed to Vercel from the repo root. vercel.json rewrites the root address to it.
 
 backend/server.js is the backend service, deployed to Railway from the backend folder.
 

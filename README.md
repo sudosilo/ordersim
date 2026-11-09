@@ -8,6 +8,6 @@ Live at ordersim.vercel.app
 
 This app is checked every morning by Control Troll.
 
-Latest change. First release. Version 2 has a light theme, callsigns, local best scores, and an online leaderboard.
+Latest change. Version three adds a tutorial, drive thru and daily shift scenarios, paper rolls, allergy confirms, 86 items, voids, order changes, offline screens with reboot, rush and delivery tickets, an all day count, recall, pause, a hamburger menu with settings, sound, vibration, achievements, career stats, run history, and a graded shift report.
 
 See CHANGELOG.md for the full history.
